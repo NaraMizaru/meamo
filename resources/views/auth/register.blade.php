@@ -13,8 +13,14 @@
         <!-- Nomor Telepon -->
         <div class="mt-4">
             <x-input-label for="phone_number" :value="__('Nomor Telepon')" />
-            <x-text-input id="phone_number" class="block mt-1 w-full" type="text" name="phone_number"
-                :value="old('phone_number')" required autocomplete="tel" />
+            <div class="flex mt-1">
+                <span
+                    class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
+                    +62
+                </span>
+                <x-text-input id="phone_number" class="block w-full rounded-l-none" type="text" name="phone_number"
+                    :value="old('phone_number')" required autocomplete="tel" placeholder="81234567890" />
+            </div>
             <x-input-error :messages="$errors->get('phone_number')" class="mt-2" />
         </div>
 

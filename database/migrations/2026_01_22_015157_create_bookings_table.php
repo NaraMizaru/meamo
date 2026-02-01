@@ -16,7 +16,7 @@ return new class extends Migration {
             $table->string('queue_number')->nullable();
             $table->integer('sequence')->default(0);
             $table->decimal('total_price', 10, 2)->default(0);
-            $table->enum('status', ['pending', 'booked', 'completed', 'cancelled', 'skipped'])->default('pending');
+            $table->enum('status', ['booked', 'completed', 'cancelled', 'skipped'])->default('booked'); // Pending removed
             $table->text('notes')->nullable();
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->useCurrent()->useCurrentOnUpdate();

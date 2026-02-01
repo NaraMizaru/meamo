@@ -59,6 +59,43 @@ class User extends Authenticatable
         return $this->role === 'admin';
     }
 
+    /**
+     * Normalize phone number to '08...' format.
+     */
+    public function setPhoneNumberAttribute($value)
+    {
+        // Remove non-numeric characters
+        $value = preg_replace('/\D/', '', $value);
+
+        // If starts with 62, replace with 0
+        if (str_starts_with($value, '62')) {
+            $value = '0' . substr($value, 2);
+        }
+        // If doesn't start with 0, prepend 0 (assuming it's a valid number starting with 8 usually)
+        elseif (!str_starts_with($value, '0')) {
+            $value = '0' . $value;
+        }
+
+        $this->attributes['phone_number'] = $value;
+    }
+
+    /**
+     * Get WhatsApp URL (wa.me/628...).
+     */
+    public function getWhatsappUrlAttribute()
+    {
+        if (!$this->phone_number)
+            return null;
+
+        $phone = $this->phone_number;
+        // If starts with 0, replace with 62
+        if (str_starts_with($phone, '0')) {
+            $phone = '62' . substr($phone, 1);
+        }
+
+        return "https://wa.me/{$phone}";
+    }
+
     public function hasRole(string $role): bool
     {
         return $this->role === $role;

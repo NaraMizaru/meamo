@@ -18,6 +18,11 @@ class Booking extends Model
         'status',
         'notes',
         'total_price',
+        'processing_started_at',
+    ];
+
+    protected $casts = [
+        'processing_started_at' => 'datetime',
     ];
 
     public function user(): BelongsTo
@@ -72,6 +77,11 @@ class Booking extends Model
     public function isSkipped(): bool
     {
         return $this->status === 'skipped';
+    }
+
+    public function isProcessing(): bool
+    {
+        return $this->status === 'processing';
     }
 
     public function getEstimatedStartTimeAttribute()

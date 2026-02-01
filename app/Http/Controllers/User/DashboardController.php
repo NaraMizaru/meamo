@@ -9,14 +9,29 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        $user = Auth::user();
+        $user = auth()->user();
 
-        if ($user->isAdmin()) {
-            return redirect()->route('admin.dashboard');
+        // My Next Booking (Nearest Future)
+        $query = $user->bookings()->with(['service', 'schedule', 'items', 'addons', 'promo'])
+            ->where('bookings.status', 'booked')
+            ->whereHas('schedule', function ($q) {
+                $q->where('event_date', '>=', now()->startOfDay());
+            })
+            ->join('schedules', 'bookings.schedule_id', '=', 'schedules.id')
+            ->orderBy('schedules.event_date', 'asc')
+            ->orderBy('bookings.sequence', 'asc')
+            ->select('bookings.*');
+
+        $next_booking = (clone $query)->first();
+
+        // My Upcoming Queue (Next 6)
+        $upcoming_queue = [];
+        if ($next_booking) {
+            $upcoming_queue = (clone $query)->where('bookings.id', '!=', $next_booking->id)->take(6)->get();
+        } else {
+            $upcoming_queue = (clone $query)->take(6)->get();
         }
 
-        $bookings = $user->bookings()->with(['service', 'schedule'])->latest()->get();
-
-        return view('user.dashboard', compact('user', 'bookings'));
+        return view('user.dashboard', compact('next_booking', 'upcoming_queue'));
     }
 }

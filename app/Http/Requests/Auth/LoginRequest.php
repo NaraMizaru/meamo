@@ -41,7 +41,14 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
-        if (!Auth::attempt($this->only('phone_number', 'password'), $this->boolean('remember'))) {
+        $credentials = $this->only('phone_number', 'password');
+
+        // Normalize phone number: ensure it starts with '0'
+        if (isset($credentials['phone_number']) && !str_starts_with($credentials['phone_number'], '0')) {
+            $credentials['phone_number'] = '0' . $credentials['phone_number'];
+        }
+
+        if (!Auth::attempt($credentials, $this->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([

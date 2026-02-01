@@ -10,41 +10,40 @@ class ScheduleSeeder extends Seeder
 {
     public function run(): void
     {
-        $schedules = [
-            [
-                'event_date' => Carbon::now()->addDays(7),
-                'start_time' => '10:00:00',
-                'end_time' => '14:00:00',
-                'status' => 'available',
-            ],
-            [
-                'event_date' => Carbon::now()->addDays(7),
-                'start_time' => '15:00:00',
-                'end_time' => '19:00:00',
-                'status' => 'available',
-            ],
-            [
-                'event_date' => Carbon::now()->addDays(14),
-                'start_time' => '10:00:00',
-                'end_time' => '14:00:00',
-                'status' => 'available',
-            ],
-            [
-                'event_date' => Carbon::now()->addDays(14),
-                'start_time' => '15:00:00',
-                'end_time' => '19:00:00',
-                'status' => 'available',
-            ],
-            [
-                'event_date' => Carbon::now()->addDays(21),
-                'start_time' => '09:00:00',
-                'end_time' => '17:00:00',
-                'status' => 'available',
-            ],
+        $timeSlots = [
+            ['start' => '09:00:00', 'end' => '12:00:00'],
+            ['start' => '10:00:00', 'end' => '14:00:00'],
+            ['start' => '13:00:00', 'end' => '17:00:00'],
+            ['start' => '14:00:00', 'end' => '18:00:00'],
+            ['start' => '15:00:00', 'end' => '19:00:00'],
+            ['start' => '16:00:00', 'end' => '20:00:00'],
+            ['start' => '18:00:00', 'end' => '22:00:00'],
         ];
 
-        foreach ($schedules as $schedule) {
-            Schedule::create($schedule);
+        $statuses = ['available', 'available', 'available', 'unavailable']; // 75% available
+
+        // Generate schedules for the next 30 days
+        for ($day = 1; $day <= 30; $day++) {
+            // Random 1-3 time slots per day
+            $slotsForDay = rand(1, 3);
+            $usedSlots = [];
+
+            for ($i = 0; $i < $slotsForDay; $i++) {
+                // Pick a random slot that hasn't been used today
+                do {
+                    $slotIndex = array_rand($timeSlots);
+                } while (in_array($slotIndex, $usedSlots));
+
+                $usedSlots[] = $slotIndex;
+                $slot = $timeSlots[$slotIndex];
+
+                Schedule::create([
+                    'event_date' => Carbon::now()->addDays($day),
+                    'start_time' => $slot['start'],
+                    'end_time' => $slot['end'],
+                    'status' => $statuses[array_rand($statuses)],
+                ]);
+            }
         }
     }
 }

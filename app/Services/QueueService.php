@@ -81,12 +81,12 @@ class QueueService
             $scheduleId = $skippedBooking->schedule_id;
 
             $nextBooking = Booking::where('schedule_id', $scheduleId)
-                ->whereIn('status', ['pending', 'booked'])
+                ->whereIn('status', ['booked', 'processing']) // Changed from pending
                 ->orderBy('sequence')
                 ->first();
 
             if (!$nextBooking) {
-                $skippedBooking->update(['status' => 'booked']); // Or pending
+                $skippedBooking->update(['status' => 'booked']);
                 return;
             }
 
@@ -99,7 +99,7 @@ class QueueService
             // Set skipped booking to nextBooking's original sequence
             $skippedBooking->update([
                 'sequence' => $nextBooking->sequence,
-                'status' => 'pending' // Ready to process
+                'status' => 'booked' // Changed from pending
             ]);
         });
     }

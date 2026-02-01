@@ -24,6 +24,10 @@
                         class="{{ request()->routeIs('gallery') ? 'text-blue-600 font-semibold' : 'text-gray-700' }}">Galeri</a>
                     <a href="{{ route('services') }}"
                         class="{{ request()->routeIs('services') ? 'text-blue-600 font-semibold' : 'text-gray-700' }}">Layanan</a>
+                    <a href="{{ route('bookings.index') }}"
+                        class="{{ request()->routeIs('bookings.index') ? 'text-blue-600 font-semibold' : 'text-gray-700' }}">Booking</a>
+                    <a href="{{ route('bookings.history') }}"
+                        class="{{ request()->routeIs('bookings.history') ? 'text-blue-600 font-semibold' : 'text-gray-700' }}">Riwayat</a>
                     <a href="{{ route('schedules') }}"
                         class="{{ request()->routeIs('schedules') ? 'text-blue-600 font-semibold' : 'text-gray-700' }}">Jadwal</a>
                     <a href="{{ route('contact') }}"

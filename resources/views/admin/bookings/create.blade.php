@@ -1,33 +1,46 @@
-@extends('user.layouts.dashboard')
+@extends('admin.layouts.app')
 
-@section('title', 'Pesan Sekarang')
-@section('header', 'Pemesanan Baru')
+@section('title', 'Buat Booking Baru')
+@section('header', 'Booking Manual')
 
 @section('content')
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-        {{-- Left Column: Booking Form --}}
+        {{-- Kolom Kiri: Form Pemesanan --}}
         <div class="lg:col-span-2">
-            <div class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-                <div class="p-4 md:p-6 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-indigo-50">
-                    <h2 class="font-bold text-gray-800 flex items-center gap-2">
-                        <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2">
-                            </path>
-                        </svg>
-                        Form Pemesanan
-                    </h2>
-                </div>
-                <form action="{{ route('booking.store') }}" method="POST" id="bookingForm" class="p-4 md:p-6">
+            <div class="bg-white overflow-hidden shadow-sm rounded-lg p-6">
+                <form action="{{ route('admin.bookings.store') }}" method="POST" id="bookingForm">
                     @csrf
 
+                    <!-- Informasi Pelanggan -->
+                    <div class="mb-6 border-b pb-4">
+                        <h4 class="font-bold text-gray-700 mb-4 uppercase text-sm tracking-wider">Informasi Pelanggan</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block mb-2 font-semibold">Nama Pelanggan *</label>
+                                <input type="text" name="name" class="w-full border rounded-lg px-4 py-3" required
+                                    placeholder="Nama Lengkap">
+                            </div>
+                            <div>
+                                <label class="block mb-2 font-semibold">Nomor Telepon *</label>
+                                <div class="flex">
+                                    <span
+                                        class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
+                                        +62
+                                    </span>
+                                    <input type="text" name="phone_number" class="w-full border rounded-r-lg px-4 py-3"
+                                        required placeholder="81234567890">
+                                </div>
+                                <p class="text-xs text-gray-500 mt-1">Sistem akan mencari user berdasarkan nomor ini. Jika
+                                    tidak ada, user baru akan dibuat.</p>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="mb-6">
-                        <label class="block mb-2 font-semibold text-gray-700 text-sm">Layanan <span
-                                class="text-red-500">*</span></label>
-                        <select id="service_select" name="service_id"
-                            class="w-full border border-gray-200 rounded-xl px-4 py-3 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all bg-white"
-                            required onchange="updateForm()">
+                        <label class="block mb-2 font-semibold">Layanan *</label>
+                        <select id="service_select" name="service_id" class="w-full border rounded-lg px-4 py-3" required
+                            onchange="updateForm()">
                             <option value="">-- Pilih Layanan --</option>
                             @foreach($services as $service)
                                 @php
@@ -44,34 +57,34 @@
                         </select>
                     </div>
 
-                    <!-- Addons Section -->
+                    <!-- Bagian Addon -->
                     <div id="addons_section" class="mb-6 hidden">
-                        <label class="block mb-3 font-semibold text-gray-700 text-sm">Tambahan</label>
-                        <div class="space-y-3">
+                        <label class="block mb-2 font-semibold">Tambahan</label>
+                        <div class="grid grid-cols-1 gap-4">
                             @foreach($services->pluck('addons')->flatten()->unique('id') as $addon)
                                 @php
                                     $addonYield = $addon->items->map(function ($item) {
                                         return ['name' => $item->name, 'quantity' => $item->pivot->quantity];
                                     });
                                 @endphp
-                                <div class="addon-item border border-gray-200 rounded-xl p-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 hover:border-blue-200 hover:bg-blue-50/30 transition-colors"
+                                <div class="addon-item border rounded p-3 flex justify-between items-center"
                                     data-id="{{ $addon->id }}" data-yield='{{ json_encode($addonYield) }}'>
-                                    <div class="flex-1">
-                                        <span class="font-medium text-gray-800">{{ $addon->name }}</span>
-                                        <p class="text-sm text-gray-500">{{ $addon->description }}</p>
+                                    <div class="flex items-center gap-3 flex-1">
+                                        <div class="flex flex-col">
+                                            <span class="font-medium">{{ $addon->name }}</span>
+                                            <span class="text-sm text-gray-500">{{ $addon->description }}</span>
+                                        </div>
                                     </div>
-                                    <div class="flex items-center justify-between sm:justify-end gap-4">
-                                        <span class="text-blue-600 font-bold text-sm">Rp
+                                    <div class="flex items-center gap-4">
+                                        <span class="text-blue-600 font-semibold text-sm">Rp
                                             {{ number_format($addon->price, 0, ',', '.') }}</span>
-                                        <div class="flex items-center border border-gray-200 rounded-lg overflow-hidden">
-                                            <button type="button"
-                                                class="px-3 py-2 bg-gray-100 hover:bg-gray-200 transition-colors"
-                                                onclick="updateQty(this, -1)">−</button>
+                                        <div class="flex items-center border rounded">
+                                            <button type="button" class="px-3 py-1 bg-gray-100 hover:bg-gray-200"
+                                                onclick="updateQty(this, -1)">-</button>
                                             <input type="number" name="addons[{{ $addon->id }}]" value="0" min="0"
-                                                class="w-12 text-center border-none p-2 focus:ring-0 addon-qty bg-white"
+                                                class="w-12 text-center border-none p-1 focus:ring-0 addon-qty"
                                                 data-price="{{ $addon->price }}" data-name="{{ $addon->name }}" readonly>
-                                            <button type="button"
-                                                class="px-3 py-2 bg-gray-100 hover:bg-gray-200 transition-colors"
+                                            <button type="button" class="px-3 py-1 bg-gray-100 hover:bg-gray-200"
                                                 onclick="updateQty(this, 1)">+</button>
                                         </div>
                                     </div>
@@ -81,11 +94,9 @@
                     </div>
 
                     <div class="mb-6">
-                        <label class="block mb-2 font-semibold text-gray-700 text-sm">Jadwal <span
-                                class="text-red-500">*</span></label>
-                        <select id="schedule_select" name="schedule_id"
-                            class="w-full border border-gray-200 rounded-xl px-4 py-3 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all bg-white"
-                            required onchange="checkPromo()">
+                        <label class="block mb-2 font-semibold">Jadwal *</label>
+                        <select id="schedule_select" name="schedule_id" class="w-full border rounded-lg px-4 py-3" required
+                            onchange="checkPromo()">
                             <option value="">-- Pilih Tanggal --</option>
                             @foreach($schedules as $schedule)
                                 @php $isAvailable = $schedule->isAvailable(); @endphp
@@ -99,89 +110,66 @@
                     </div>
 
                     <div class="mb-6">
-                        <label class="block mb-2 font-semibold text-gray-700 text-sm">Kode Promo</label>
+                        <label class="block mb-2 font-semibold">Kode Promo</label>
                         <div class="flex gap-2">
                             <input type="text" id="promo_code" name="promo_code"
-                                class="flex-1 border border-gray-200 rounded-xl px-4 py-3 uppercase focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
-                                placeholder="Masukkan kode" onchange="checkPromo()">
+                                class="w-full border rounded-lg px-4 py-3 uppercase" placeholder="Masukkan kode"
+                                onchange="checkPromo()">
                             <button type="button" onclick="checkPromo('manual')"
-                                class="bg-gray-100 hover:bg-gray-200 px-5 rounded-xl font-medium transition-colors text-gray-700">Terapkan</button>
+                                class="bg-gray-200 px-4 rounded hover:bg-gray-300">Terapkan</button>
                         </div>
-                        <p id="promo_message" class="text-sm mt-2"></p>
+                        <p id="promo_message" class="text-sm mt-1"></p>
                     </div>
 
                     <div class="mb-6">
-                        <label class="block mb-2 font-semibold text-gray-700 text-sm">Catatan</label>
-                        <textarea name="notes" rows="3"
-                            class="w-full border border-gray-200 rounded-xl px-4 py-3 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all resize-none"
+                        <label class="block mb-2 font-semibold">Catatan</label>
+                        <textarea name="notes" class="w-full border rounded-lg px-4 py-3"
                             placeholder="Catatan opsional..."></textarea>
                     </div>
 
-                    <button
-                        class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white py-3.5 rounded-xl font-bold shadow-lg shadow-blue-500/25 transition-all duration-200 flex items-center justify-center gap-2">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                        </svg>
-                        Kirim Pemesanan
+                    <button class="w-full bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700">
+                        Buat Booking
                     </button>
                 </form>
             </div>
         </div>
 
-        {{-- Right Column: Order Summary --}}
+        {{-- Kolom Kanan: Ringkasan Pesanan --}}
         <div class="lg:col-span-1">
-            <div class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden lg:sticky lg:top-24">
-                <div class="p-4 border-b border-gray-100 bg-gradient-to-r from-indigo-50 to-blue-50">
-                    <h3 class="font-bold text-gray-800 flex items-center gap-2">
-                        <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01">
-                            </path>
-                        </svg>
-                        Ringkasan Pesanan
-                    </h3>
+            <div class="bg-white overflow-hidden shadow-sm rounded-lg p-6 sticky top-6">
+                <h3 class="text-lg font-bold mb-4 border-b pb-2">Ringkasan Pesanan</h3>
+
+                <div id="summary_items" class="space-y-2 mb-4 text-sm">
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Layanan</span>
+                        <span class="font-medium" id="summary_service">-</span>
+                    </div>
+                    <div id="summary_addons_list" class="space-y-1 pl-2 border-l-2 border-gray-100 mt-2">
+                        <!-- Addon dimasukkan di sini -->
+                    </div>
                 </div>
-                <div class="p-4 md:p-6">
-                    <div id="summary_items" class="space-y-2 mb-4 text-sm">
-                        <div class="flex justify-between">
-                            <span class="text-gray-600">Layanan</span>
-                            <span class="font-medium text-gray-800" id="summary_service">-</span>
-                        </div>
-                        <div id="summary_addons_list" class="space-y-1 pl-3 border-l-2 border-blue-100 mt-2">
-                            <!-- Addons inserted here -->
-                        </div>
-                    </div>
 
-                    <!-- Yield Summary -->
-                    <div class="bg-gradient-to-r from-indigo-50 to-blue-50 p-4 rounded-xl mb-4">
-                        <h4 class="font-semibold text-gray-700 mb-2 text-sm flex items-center gap-2">
-                            <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z">
-                                </path>
-                            </svg>
-                            Total Item (Hasil):
-                        </h4>
-                        <ul id="yield_summary_list" class="list-disc list-inside text-gray-600 space-y-1 text-sm">
-                            <li>-</li>
-                        </ul>
-                    </div>
+                <!-- Bagian Ringkasan Hasil -->
+                <div class="bg-gray-50 p-3 rounded mb-4 text-sm">
+                    <h4 class="font-semibold text-gray-700 mb-2">Total Item (Hasil):</h4>
+                    <ul id="yield_summary_list" class="list-disc list-inside text-gray-600 space-y-1">
+                        <li>-</li>
+                    </ul>
+                </div>
 
-                    <div class="border-t pt-4 space-y-2">
-                        <div class="flex justify-between text-gray-600 text-sm">
-                            <span>Subtotal</span>
-                            <span id="summary_subtotal">Rp 0</span>
-                        </div>
-                        <div class="flex justify-between text-green-600 font-medium text-sm" id="summary_discount_row"
-                            style="display:none;">
-                            <span>Diskon <span id="promo_name_display" class="text-xs text-gray-500"></span></span>
-                            <span id="summary_discount">- Rp 0</span>
-                        </div>
-                        <div
-                            class="flex justify-between text-lg font-bold text-gray-800 mt-3 pt-3 border-t-2 border-dashed">
-                            <span>Total</span>
-                            <span id="summary_total" class="text-blue-600">Rp 0</span>
-                        </div>
+                <div class="border-t pt-2 space-y-2">
+                    <div class="flex justify-between text-gray-600">
+                        <span>Subtotal</span>
+                        <span id="summary_subtotal">Rp 0</span>
+                    </div>
+                    <div class="flex justify-between text-green-600 font-medium" id="summary_discount_row"
+                        style="display:none;">
+                        <span>Diskon <span id="promo_name_display" class="text-xs text-gray-500"></span></span>
+                        <span id="summary_discount">- Rp 0</span>
+                    </div>
+                    <div class="flex justify-between text-xl font-bold text-gray-800 mt-2 pt-2 border-t">
+                        <span>Total</span>
+                        <span id="summary_total">Rp 0</span>
                     </div>
                 </div>
             </div>
@@ -190,7 +178,7 @@
     </div>
 
     <script>
-        // State
+        // Copy of User Booking Logic
         let currentPromo = null;
 
         function updateQty(btn, change) {
@@ -301,7 +289,6 @@
             }
             if (!hasYield) yieldSummaryList.innerHTML = '<li>-</li>';
 
-
             summarySubtotal.textContent = 'Rp ' + subtotal.toLocaleString('id-ID');
 
             let discountAmount = 0;
@@ -348,6 +335,7 @@
             const scheduleDate = scheduleSelect.options[scheduleSelect.selectedIndex].getAttribute('data-date');
 
             try {
+                // Using API Route (Should work if Admin is Logged IN)
                 const response = await fetch('{{ route("api.check-promo") }}', {
                     method: 'POST',
                     headers: {
@@ -366,8 +354,8 @@
                 if (data.valid && data.promo) {
                     currentPromo = data.promo;
                     if (mode === 'manual') {
-                        messageEl.className = 'text-green-600 text-sm mt-2 flex items-center gap-1';
-                        messageEl.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Promo Diterapkan: ' + data.promo.code;
+                        messageEl.className = 'text-green-600 text-sm mt-1';
+                        messageEl.textContent = 'Promo Diterapkan: ' + data.promo.code;
                         promoCodeInput.value = data.promo.code;
                     } else {
                         if (manualCode === '') {
@@ -378,18 +366,17 @@
                 } else {
                     currentPromo = null;
                     if (mode === 'manual' && manualCode !== '') {
-                        messageEl.className = 'text-red-600 text-sm mt-2 flex items-center gap-1';
-                        messageEl.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg> Kode Promo tidak valid untuk tanggal/layanan yang dipilih.';
+                        messageEl.className = 'text-red-600 text-sm mt-1';
+                        messageEl.textContent = 'Kode Promo tidak valid untuk tanggal/layanan yang dipilih.';
                     } else if (mode === 'auto' && manualCode !== '') {
                         promoCodeInput.value = '';
                     }
                 }
-
                 calculateTotal();
 
             } catch (error) {
                 console.error('Error Pemeriksaan Promo', error);
-                messageEl.className = 'text-red-600 text-sm mt-2';
+                messageEl.className = 'text-red-600 text-sm mt-1';
                 messageEl.textContent = 'Terjadi kesalahan saat memeriksa promo.';
             }
         }

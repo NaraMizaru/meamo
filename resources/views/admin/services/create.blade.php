@@ -4,86 +4,124 @@
 @section('header', 'Buat Layanan Baru')
 
 @section('content')
-    <div class="bg-white rounded-lg shadow p-6 max-w-4xl">
-        <form action="{{ route('admin.services.store') }}" method="POST">
-            @csrf
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <div>
-                    <label class="block mb-2 font-semibold">Nama Layanan *</label>
-                    <input type="text" name="name" class="w-full border rounded px-3 py-2" required>
-                    @error('name') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
-                </div>
-                <div>
-                    <label class="block mb-2 font-semibold">Harga (Rp) *</label>
-                    <input type="number" name="price" class="w-full border rounded px-3 py-2" min="0" required>
-                    @error('price') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
-                </div>
+    <div class="max-w-4xl">
+        <div class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+            <div class="p-4 md:p-6 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
+                <h3 class="font-bold text-gray-800 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                    </svg>
+                    Layanan Baru
+                </h3>
             </div>
 
-            <div class="mb-6">
-                <label class="block mb-2 font-semibold">Deskripsi</label>
-                <textarea name="description" class="w-full border rounded px-3 py-2" rows="2"></textarea>
-            </div>
+            <form action="{{ route('admin.services.store') }}" method="POST" class="p-4 md:p-6">
+                @csrf
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-6 border-t pt-4">
-                {{-- Bagian Item Dasar --}}
-                <div>
-                    <label class="block mb-4 font-semibold text-lg">Item Dasar (Hasil)</label>
-                    <p class="text-sm text-gray-500 mb-4">Apa saja yang termasuk dalam layanan ini?</p>
-
-                    <div class="space-y-3">
-                        @foreach($items as $index => $item)
-                            <div class="border rounded p-3 flex items-center justify-between">
-                                <div class="flex items-center gap-2">
-                                    <input type="checkbox" name="items[{{ $index }}][id]" value="{{ $item->id }}"
-                                        class="form-checkbox h-5 w-5 text-blue-600 item-checkbox"
-                                        onchange="toggleQuantity(this, {{ $index }})">
-                                    <span>{{ $item->name }}</span>
-                                </div>
-                                <input type="number" name="items[{{ $index }}][quantity]" id="qty_{{ $index }}"
-                                    class="w-16 border rounded px-2 py-1 text-center" value="1" min="1" disabled>
-                            </div>
-                        @endforeach
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Nama Layanan *</label>
+                        <input type="text" name="name"
+                            class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+                            required>
+                        @error('name') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Harga (Rp) *</label>
+                        <input type="number" name="price"
+                            class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+                            min="0" required>
+                        @error('price') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                     </div>
                 </div>
 
-                {{-- Bagian Tambahan yang Diizinkan --}}
-                <div>
-                    <label class="block mb-4 font-semibold text-lg">Tambahan yang Diizinkan</label>
-                    <p class="text-sm text-gray-500 mb-4">Tambahan mana yang bisa ditambahkan ke layanan ini?</p>
+                <div class="mb-6">
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Deskripsi</label>
+                    <textarea name="description"
+                        class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+                        rows="2"></textarea>
+                </div>
 
-                    <div class="space-y-3 max-h-96 overflow-y-auto">
-                        @foreach($addons as $addon)
-                            <div class="border rounded p-3 flex items-center gap-3">
-                                <input type="checkbox" name="addons[]" value="{{ $addon->id }}"
-                                    class="form-checkbox h-5 w-5 text-blue-600">
-                                <div class="flex flex-col">
-                                    <span class="font-medium">{{ $addon->name }}</span>
-                                    <span class="text-xs text-gray-500">Rp
-                                        {{ number_format($addon->price, 0, ',', '.') }}</span>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6 pt-4 border-t border-gray-100">
+                    {{-- Item Dasar --}}
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z">
+                                </path>
+                            </svg>
+                            Item Dasar
+                        </label>
+                        <p class="text-sm text-gray-500 mb-3">Apa saja yang termasuk dalam layanan ini?</p>
+
+                        <div class="space-y-2 max-h-64 overflow-y-auto">
+                            @foreach($items as $index => $item)
+                                <div
+                                    class="border border-gray-200 rounded-xl p-3 flex items-center justify-between hover:bg-gray-50 transition-colors">
+                                    <div class="flex items-center gap-3">
+                                        <input type="checkbox" name="items[{{ $index }}][id]" value="{{ $item->id }}"
+                                            class="form-checkbox h-5 w-5 text-blue-600 rounded item-checkbox"
+                                            onchange="toggleQuantity(this, {{ $index }})">
+                                        <span class="font-medium text-gray-800">{{ $item->name }}</span>
+                                    </div>
+                                    <input type="number" name="items[{{ $index }}][quantity]" id="qty_{{ $index }}"
+                                        class="w-16 border border-gray-200 rounded-lg px-2 py-1 text-center focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                                        value="1" min="1" disabled>
                                 </div>
-                            </div>
-                        @endforeach
+                            @endforeach
+                        </div>
+                    </div>
+
+                    {{-- Tambahan yang Diizinkan --}}
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            </svg>
+                            Tambahan yang Diizinkan
+                        </label>
+                        <p class="text-sm text-gray-500 mb-3">Tambahan mana yang bisa ditambahkan ke layanan ini?</p>
+
+                        <div class="space-y-2 max-h-64 overflow-y-auto">
+                            @foreach($addons as $addon)
+                                <div
+                                    class="border border-gray-200 rounded-xl p-3 flex items-center gap-3 hover:bg-gray-50 transition-colors">
+                                    <input type="checkbox" name="addons[]" value="{{ $addon->id }}"
+                                        class="form-checkbox h-5 w-5 text-blue-600 rounded">
+                                    <div class="flex flex-col">
+                                        <span class="font-medium text-gray-800">{{ $addon->name }}</span>
+                                        <span class="text-xs text-gray-500">Rp
+                                            {{ number_format($addon->price, 0, ',', '.') }}</span>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <script>
-                function toggleQuantity(checkbox, index) {
-                    const qtyInput = document.getElementById('qty_' + index);
-                    if (checkbox.checked) {
-                        qtyInput.disabled = false;
-                    } else {
-                        qtyInput.disabled = true;
+                <script>
+                    function toggleQuantity(checkbox, index) {
+                        const qtyInput = document.getElementById('qty_' + index);
+                        qtyInput.disabled = !checkbox.checked;
                     }
-                }
-            </script>
+                </script>
 
-            <div class="flex justify-end gap-2">
-                <a href="{{ route('admin.services.index') }}" class="px-4 py-2 bg-gray-200 rounded">Batal</a>
-                <button class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Simpan Layanan</button>
-            </div>
-        </form>
+                <div class="flex flex-col sm:flex-row gap-3 pt-4 border-t border-gray-100">
+                    <button
+                        class="flex-1 sm:flex-none bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-6 py-2.5 rounded-xl font-medium shadow-lg transition-all flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        Simpan Layanan
+                    </button>
+                    <a href="{{ route('admin.services.index') }}"
+                        class="flex-1 sm:flex-none bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-2.5 rounded-xl font-medium transition-colors text-center">
+                        Batal
+                    </a>
+                </div>
+            </form>
+        </div>
     </div>
 @endsection

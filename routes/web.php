@@ -16,6 +16,8 @@ use Illuminate\Support\Facades\Route;
 
 // User Routes
 Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('/check-queue', [App\Http\Controllers\GuestController::class, 'checkQueue'])->name('check-queue');
+Route::post('/check-queue', [App\Http\Controllers\GuestController::class, 'searchQueue'])->name('search-queue');
 Route::get('/gallery', [HomeController::class, 'gallery'])->name('gallery');
 Route::get('/templates', [HomeController::class, 'templates'])->name('templates');
 Route::get('/services', [HomeController::class, 'services'])->name('services');
@@ -26,6 +28,10 @@ Route::get('/contact', [HomeController::class, 'contact'])->name('contact');
 Route::middleware(['auth'])->group(function () {
     Route::get('/booking', [BookingController::class, 'create'])->name('booking.create');
     Route::post('/booking', [BookingController::class, 'store'])->name('booking.store');
+    Route::get('/my-bookings', [BookingController::class, 'index'])->name('bookings.index');
+    Route::get('/my-bookings/history', [BookingController::class, 'history'])->name('bookings.history');
+    Route::get('/booking/{booking}/edit', [BookingController::class, 'edit'])->name('booking.edit');
+    Route::put('/booking/{booking}', [BookingController::class, 'update'])->name('booking.update');
 
     // API Routes (Session Auth)
     Route::post('/api/check-promo', [App\Http\Controllers\Api\PromoCheckController::class, 'check'])->name('api.check-promo');
@@ -44,8 +50,10 @@ Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
     Route::resource('schedules', ScheduleController::class);
 
     // Bookings Management
+    Route::get('/bookings/history', [AdminBookingController::class, 'history'])->name('bookings.history');
     Route::resource('bookings', AdminBookingController::class);
     Route::patch('/bookings/{booking}/status', [AdminBookingController::class, 'updateStatus'])->name('bookings.status');
+    Route::post('/bookings/reorder', [AdminBookingController::class, 'reorder'])->name('bookings.reorder');
     Route::post('/bookings/{booking}/move-to-top', [AdminBookingController::class, 'moveToTop'])->name('bookings.move-to-top');
     Route::post('/bookings/{booking}/send-result', [AdminBookingController::class, 'sendResult'])->name('bookings.send-result');
 
