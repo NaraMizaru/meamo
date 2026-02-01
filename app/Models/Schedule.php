@@ -25,13 +25,15 @@ class Schedule extends Model
 
     public function isAvailable(): bool
     {
-        // Calculate max capacity based on 10-minute slots
+        // Calculate max capacity based on dynamic slot duration
         $start = \Carbon\Carbon::parse($this->start_time);
         $end = \Carbon\Carbon::parse($this->end_time);
 
+        $duration = (int) \App\Services\SettingsService::get('booking_duration_minutes', 5);
+
         // Use abs to ensure positive duration
         $durationInMinutes = abs($end->diffInMinutes($start));
-        $maxCapacity = floor($durationInMinutes / 10);
+        $maxCapacity = floor($durationInMinutes / $duration);
 
         // Count active bookings (excluding cancelled)
         $currentBookings = $this->bookings()->where('status', '!=', 'cancelled')->count();
@@ -43,9 +45,10 @@ class Schedule extends Model
     {
         $start = \Carbon\Carbon::parse($this->start_time);
         $currentBookings = $this->bookings()->where('status', '!=', 'cancelled')->count();
+        $duration = (int) \App\Services\SettingsService::get('booking_duration_minutes', 5);
 
-        $slotStart = $start->addMinutes($currentBookings * 10);
-        $slotEnd = $slotStart->copy()->addMinutes(10);
+        $slotStart = $start->addMinutes($currentBookings * $duration);
+        $slotEnd = $slotStart->copy()->addMinutes($duration);
 
         return $slotStart->format('H:i') . ' - ' . $slotEnd->format('H:i');
     }

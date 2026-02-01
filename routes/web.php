@@ -6,7 +6,7 @@ use App\Http\Controllers\Admin\ServiceController;
 use App\Http\Controllers\Admin\ScheduleController;
 use App\Http\Controllers\Admin\BookingController as AdminBookingController;
 use App\Http\Controllers\Admin\GalleryController;
-use App\Http\Controllers\Admin\AuthController;
+
 use App\Http\Controllers\Admin\TemplateCategoriesController;
 use App\Http\Controllers\Admin\TemplateCategoryController;
 use App\Http\Controllers\Admin\TemplateController;
@@ -26,14 +26,12 @@ Route::get('/contact', [HomeController::class, 'contact'])->name('contact');
 Route::middleware(['auth'])->group(function () {
     Route::get('/booking', [BookingController::class, 'create'])->name('booking.create');
     Route::post('/booking', [BookingController::class, 'store'])->name('booking.store');
+
+    // API Routes (Session Auth)
+    Route::post('/api/check-promo', [App\Http\Controllers\Api\PromoCheckController::class, 'check'])->name('api.check-promo');
 });
 
-// Admin Authentication Routes
-Route::prefix('admin')->name('admin.')->group(function () {
-    Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
-    Route::post('/login', [AuthController::class, 'login'])->name('login.post');
-    Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
-});
+
 
 // Admin Protected Routes
 Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
@@ -48,6 +46,7 @@ Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
     // Bookings Management
     Route::resource('bookings', AdminBookingController::class);
     Route::patch('/bookings/{booking}/status', [AdminBookingController::class, 'updateStatus'])->name('bookings.status');
+    Route::post('/bookings/{booking}/move-to-top', [AdminBookingController::class, 'moveToTop'])->name('bookings.move-to-top');
     Route::post('/bookings/{booking}/send-result', [AdminBookingController::class, 'sendResult'])->name('bookings.send-result');
 
     // Gallery Management
@@ -59,6 +58,12 @@ Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
         'template-categories',
         TemplateCategoryController::class
     );
+
+    // New CRUD Management
+    Route::resource('items', App\Http\Controllers\Admin\ItemController::class);
+    Route::resource('service-addons', App\Http\Controllers\Admin\ServiceAddonController::class);
+    Route::resource('promos', App\Http\Controllers\Admin\PromoController::class);
+    Route::resource('settings', App\Http\Controllers\Admin\SettingController::class)->only(['index', 'store']);
 });
 
 // User Dashboard & Profile

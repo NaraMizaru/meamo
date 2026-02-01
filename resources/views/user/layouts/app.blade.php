@@ -32,15 +32,18 @@
 
                 @auth
                     <div class="hidden md:flex items-center space-x-4">
-                        <a href="{{ route('dashboard') }}" class="text-gray-700 hover:text-blue-600">Dashboard</a>
+                        <a href="{{ Auth::user()->isAdmin() ? route('admin.dashboard') : route('dashboard') }}"
+                            class="text-gray-700 hover:text-blue-600">Dashboard</a>
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
                             <button type="submit" class="text-gray-700 hover:text-blue-600">Logout</button>
                         </form>
-                        <a href="{{ route('booking.create') }}"
-                            class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg">
-                            Book Now
-                        </a>
+                        @if(!Auth::user()->isAdmin())
+                            <a href="{{ route('booking.create') }}"
+                                class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg">
+                                Book Now
+                            </a>
+                        @endif
                     </div>
                 @else
                     <div class="hidden md:flex items-center space-x-4">

@@ -56,4 +56,16 @@ class BookingController extends Controller
         return redirect()->route('admin.bookings.index')
             ->with('success', 'Booking berhasil dihapus!');
     }
+
+    public function moveToTop(Booking $booking)
+    {
+        if ($booking->status !== 'skipped') {
+            return back()->with('error', 'Only skipped bookings can be moved to top.');
+        }
+
+        $queueService = new \App\Services\QueueService();
+        $queueService->insertSkippedBooking($booking);
+
+        return back()->with('success', 'Booking moved to top of the queue!');
+    }
 }

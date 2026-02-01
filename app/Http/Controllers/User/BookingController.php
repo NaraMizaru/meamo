@@ -12,8 +12,7 @@ class BookingController extends Controller
 {
     public function create()
     {
-        $services = Service::all();
-
+        $services = Service::with('addons')->get();
 
         $schedules = Schedule::whereIn('status', ['available', 'booked'])
             ->where('event_date', '>=', today())
@@ -35,6 +34,9 @@ class BookingController extends Controller
         $validated = $request->validate([
             'service_id' => 'required|exists:services,id',
             'schedule_id' => 'required|exists:schedules,id',
+            'addons' => 'nullable|array',
+            'addons.*' => 'integer|min:0', // Key is ID, Value is Quantity
+            'promo_code' => 'nullable|string|exists:promos,code',
             'notes' => 'nullable|string',
         ]);
 
@@ -44,13 +46,85 @@ class BookingController extends Controller
             return back()->with('error', 'Jadwal yang dipilih sudah penuh (Full Booked)!');
         }
 
-        $validated['user_id'] = $user->id;
-        $validated['status'] = 'booked';
-        $validated['status'] = 'pending';
+        // --- Price Calculation ---
+        $service = Service::with('items')->find($validated['service_id']);
+        $totalPrice = $service->price;
+        $bookingItems = []; // itemId => quantity
 
-        Booking::create($validated);
+        // Add Service Items
+        foreach ($service->items as $item) {
+            $bookingItems[$item->id] = ($bookingItems[$item->id] ?? 0) + $item->pivot->quantity;
+        }
+
+        // Addons
+        $addonData = [];
+        if (!empty($validated['addons'])) {
+            // Filter addons with quantity > 0
+            $selectedAddonIds = array_keys(array_filter($validated['addons'], fn($q) => $q > 0));
+
+            if (!empty($selectedAddonIds)) {
+                $addons = \App\Models\ServiceAddon::with('items')->findMany($selectedAddonIds);
+                foreach ($addons as $addon) {
+                    $qty = (int) $validated['addons'][$addon->id];
+                    if ($qty > 0) {
+                        $totalPrice += ($addon->price * $qty);
+                        $addonData[$addon->id] = ['quantity' => $qty, 'price' => $addon->price];
+
+                        foreach ($addon->items as $item) {
+                            $itemQty = $item->pivot->quantity;
+                            // Multiply item yield by addon quantity
+                            $bookingItems[$item->id] = ($bookingItems[$item->id] ?? 0) + ($itemQty * $qty);
+                        }
+                    }
+                }
+            }
+        }
+
+        // Promo
+        $promoId = null;
+        if (!empty($validated['promo_code'])) {
+            $promoService = new \App\Services\PromoService();
+            // Validate based on Schedule Date
+            $promo = $promoService->validateCode($validated['promo_code'], $service, $schedule->event_date);
+            if ($promo) {
+                $discount = $promoService->calculateDiscount($promo, $totalPrice);
+                $totalPrice -= $discount;
+                $promoId = $promo->id;
+
+                // Increment promo usage
+                $promo->increment('used_count');
+            }
+        }
+        // Auto apply promo logic could go here if no code provided
+
+        $queueService = new \App\Services\QueueService();
+        $queueNumber = $queueService->generateQueueNumber($schedule->event_date);
+
+        $booking = Booking::create([
+            'user_id' => $user->id,
+            'service_id' => $service->id,
+            'schedule_id' => $schedule->id,
+            'promo_id' => $promoId,
+            'queue_number' => $queueNumber,
+            'status' => 'pending',
+            'total_price' => max(0, $totalPrice),
+            'notes' => $validated['notes'] ?? null,
+            'sequence' => 0, // Will update below
+        ]);
+
+        $queueService->assignSequence($booking);
+
+        // Attach Relationships
+        if (!empty($addonData)) {
+            $booking->addons()->attach($addonData);
+        }
+
+        // Attach Items Snapshot
+        foreach ($bookingItems as $itemId => $qty) {
+            $booking->items()->attach($itemId, ['quantity' => $qty]);
+        }
 
         return redirect()->route('dashboard')
-            ->with('success', 'Booking berhasil! Anda telah masuk antrian.');
+            ->with('success', "Booking berhasil! Nomor Antrian Anda: {$queueNumber}");
     }
 }

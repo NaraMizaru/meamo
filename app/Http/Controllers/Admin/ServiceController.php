@@ -16,7 +16,9 @@ class ServiceController extends Controller
 
     public function create()
     {
-        return view('admin.services.create');
+        $items = \App\Models\Item::all();
+        $addons = \App\Models\ServiceAddon::all();
+        return view('admin.services.create', compact('items', 'addons'));
     }
 
     public function store(Request $request)
@@ -25,9 +27,34 @@ class ServiceController extends Controller
             'name' => 'required|string|max:150',
             'description' => 'nullable|string',
             'price' => 'required|numeric|min:0',
+            'items' => 'nullable|array',
+            'items.*.id' => 'exists:items,id',
+            'items.*.quantity' => 'nullable|integer|min:1',
+            'addons' => 'nullable|array',
+            'addons.*' => 'exists:service_addons,id',
         ]);
 
-        Service::create($validated);
+        $service = Service::create([
+            'name' => $validated['name'],
+            'description' => $validated['description'],
+            'price' => $validated['price'],
+        ]);
+
+        // Sync Items
+        if (!empty($validated['items'])) {
+            $itemSync = [];
+            foreach ($validated['items'] as $itemData) {
+                if (isset($itemData['id']) && isset($itemData['quantity'])) {
+                    $itemSync[$itemData['id']] = ['quantity' => $itemData['quantity']];
+                }
+            }
+            $service->items()->sync($itemSync);
+        }
+
+        // Sync Addons
+        if (!empty($validated['addons'])) {
+            $service->addons()->sync($validated['addons']);
+        }
 
         return redirect()->route('admin.services.index')
             ->with('success', 'Service berhasil ditambahkan!');
@@ -35,7 +62,9 @@ class ServiceController extends Controller
 
     public function edit(Service $service)
     {
-        return view('admin.services.edit', compact('service'));
+        $items = \App\Models\Item::all();
+        $addons = \App\Models\ServiceAddon::all();
+        return view('admin.services.edit', compact('service', 'items', 'addons'));
     }
 
     public function update(Request $request, Service $service)
@@ -44,9 +73,36 @@ class ServiceController extends Controller
             'name' => 'required|string|max:150',
             'description' => 'nullable|string',
             'price' => 'required|numeric|min:0',
+            'items' => 'nullable|array',
+            'items.*.id' => 'exists:items,id',
+            'items.*.quantity' => 'nullable|integer|min:1',
+            'addons' => 'nullable|array',
+            'addons.*' => 'exists:service_addons,id',
         ]);
 
-        $service->update($validated);
+        $service->update([
+            'name' => $validated['name'],
+            'description' => $validated['description'],
+            'price' => $validated['price'],
+        ]);
+
+        // Sync Items
+        $itemSync = [];
+        if (!empty($validated['items'])) {
+            foreach ($validated['items'] as $itemData) {
+                if (isset($itemData['id']) && isset($itemData['quantity'])) {
+                    $itemSync[$itemData['id']] = ['quantity' => $itemData['quantity']];
+                }
+            }
+        }
+        $service->items()->sync($itemSync);
+
+        // Sync Addons
+        if (!empty($validated['addons'])) {
+            $service->addons()->sync($validated['addons']);
+        } else {
+            $service->addons()->detach();
+        }
 
         return redirect()->route('admin.services.index')
             ->with('success', 'Service berhasil diupdate!');

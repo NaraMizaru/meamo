@@ -23,6 +23,7 @@ class User extends Authenticatable
         'password',
         'phone_number',
         'google_id',
+        'role',
     ];
 
     /**
@@ -51,5 +52,15 @@ class User extends Authenticatable
     public function bookings()
     {
         return $this->hasMany(Booking::class);
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
+    }
+
+    public function hasRole(string $role): bool
+    {
+        return $this->role === $role;
     }
 }

@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\Admin;
+use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
@@ -10,10 +10,15 @@ class AdminSeeder extends Seeder
 {
     public function run(): void
     {
-        Admin::create([
-            'name' => 'Admin Meamo',
-            'email' => 'admin@meamo.com',
-            'password' => Hash::make('password'),
-        ]);
+        // Admin user
+        User::updateOrCreate(
+            ['phone_number' => '081234567890'],
+            [
+                'name' => 'Admin Meamo',
+                'email' => 'admin@meamo.com', // Optional
+                'password' => Hash::make('password'),
+                'role' => 'admin',
+            ]
+        );
     }
 }
