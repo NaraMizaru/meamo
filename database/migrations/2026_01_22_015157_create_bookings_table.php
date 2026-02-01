@@ -9,11 +9,14 @@ return new class extends Migration {
     {
         Schema::create('bookings', function (Blueprint $table) {
             $table->id();
-            $table->string('customer_name', 150);
-            $table->string('customer_email', 150);
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('service_id')->constrained('services')->onDelete('cascade');
             $table->foreignId('schedule_id')->constrained('schedules')->onDelete('cascade');
-            $table->enum('status', ['pending', 'booked', 'completed', 'cancelled'])->default('pending');
+            $table->foreignId('promo_id')->nullable()->constrained('promos')->onDelete('set null');
+            $table->string('queue_number')->nullable();
+            $table->integer('sequence')->default(0);
+            $table->decimal('total_price', 10, 2)->default(0);
+            $table->enum('status', ['pending', 'booked', 'completed', 'cancelled', 'skipped'])->default('pending');
             $table->text('notes')->nullable();
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->useCurrent()->useCurrentOnUpdate();
