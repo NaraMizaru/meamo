@@ -59,6 +59,11 @@ class User extends Authenticatable
         return $this->role === 'admin';
     }
 
+    public function isAdminWeb(): bool
+    {
+        return $this->role === 'admin_web';
+    }
+
     /**
      * Normalize phone number to '08...' format.
      */

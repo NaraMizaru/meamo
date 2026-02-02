@@ -92,7 +92,7 @@
                                 <option value="{{ $schedule->id }}" data-date="{{ $schedule->event_date->format('Y-m-d') }}" {{ !$isAvailable ? 'disabled' : '' }}
                                     class="{{ !$isAvailable ? 'text-gray-400 bg-gray-100' : '' }}"
                                     {{ $isBookingSchedule ? 'selected' : '' }}>
-                                    {{ $schedule->event_date->format('d F Y') }} ({{ $schedule->next_slot }})
+                                    {{ $schedule->event_date->format('d F Y') }} ({{ \Carbon\Carbon::parse($schedule->start_time)->format('H:i') }} - {{ \Carbon\Carbon::parse($schedule->end_time)->format('H:i') }})
                                     {{ !$isAvailable ? '(Penuh)' : '' }}
                                 </option>
                             @endforeach

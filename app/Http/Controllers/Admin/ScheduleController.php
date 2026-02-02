@@ -10,7 +10,7 @@ class ScheduleController extends Controller
 {
     public function index()
     {
-        $schedules = Schedule::latest('event_date')->paginate(10);
+        $schedules = Schedule::oldest('event_date')->paginate(10);
         return view('admin.schedules.index', compact('schedules'));
     }
 

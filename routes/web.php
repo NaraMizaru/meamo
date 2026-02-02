@@ -25,7 +25,7 @@ Route::get('/schedules', [HomeController::class, 'schedules'])->name('schedules'
 Route::get('/contact', [HomeController::class, 'contact'])->name('contact');
 
 // User Booking Routes
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'role:user'])->group(function () {
     Route::get('/booking', [BookingController::class, 'create'])->name('booking.create');
     Route::post('/booking', [BookingController::class, 'store'])->name('booking.store');
     Route::get('/my-bookings', [BookingController::class, 'index'])->name('bookings.index');
@@ -43,19 +43,38 @@ Route::middleware(['auth'])->group(function () {
 Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-    // Services Management
-    Route::resource('services', ServiceController::class);
+    Route::middleware(['role:admin'])->group(function () {
+        // Services Management
+        Route::resource('services', ServiceController::class);
 
-    // Schedules Management
-    Route::resource('schedules', ScheduleController::class);
+        // Schedules Management
+        Route::resource('schedules', ScheduleController::class);
 
-    // Bookings Management
-    Route::get('/bookings/history', [AdminBookingController::class, 'history'])->name('bookings.history');
-    Route::resource('bookings', AdminBookingController::class);
-    Route::patch('/bookings/{booking}/status', [AdminBookingController::class, 'updateStatus'])->name('bookings.status');
-    Route::post('/bookings/reorder', [AdminBookingController::class, 'reorder'])->name('bookings.reorder');
-    Route::post('/bookings/{booking}/move-to-top', [AdminBookingController::class, 'moveToTop'])->name('bookings.move-to-top');
-    Route::post('/bookings/{booking}/send-result', [AdminBookingController::class, 'sendResult'])->name('bookings.send-result');
+        // Bookings Management
+        Route::get('/bookings/history', [AdminBookingController::class, 'history'])->name('bookings.history');
+        Route::resource('bookings', AdminBookingController::class);
+        Route::patch('/bookings/{booking}/status', [AdminBookingController::class, 'updateStatus'])->name('bookings.status');
+        Route::post('/bookings/reorder', [AdminBookingController::class, 'reorder'])->name('bookings.reorder');
+        Route::post('/bookings/{booking}/move-to-top', [AdminBookingController::class, 'moveToTop'])->name('bookings.move-to-top');
+        Route::post('/bookings/{booking}/send-result', [AdminBookingController::class, 'sendResult'])->name('bookings.send-result');
+
+        // New CRUD Management
+        Route::resource('items', App\Http\Controllers\Admin\ItemController::class);
+        Route::resource('service-addons', App\Http\Controllers\Admin\ServiceAddonController::class);
+        Route::resource('promos', App\Http\Controllers\Admin\PromoController::class);
+        Route::resource('settings', App\Http\Controllers\Admin\SettingController::class)->only(['index', 'store']);
+
+        // Finance Management
+        Route::get('/finance', [App\Http\Controllers\Admin\FinanceController::class, 'index'])->name('finance.index');
+        Route::post('/finance', [App\Http\Controllers\Admin\FinanceController::class, 'store'])->name('finance.store');
+        Route::put('/finance/{transaction}', [App\Http\Controllers\Admin\FinanceController::class, 'update'])->name('finance.update');
+        Route::delete('/finance/{transaction}', [App\Http\Controllers\Admin\FinanceController::class, 'destroy'])->name('finance.destroy');
+        Route::get('/finance/history', [App\Http\Controllers\Admin\FinanceController::class, 'history'])->name('finance.history');
+        Route::get('/finance/analysis', [App\Http\Controllers\Admin\FinanceController::class, 'analysis'])->name('finance.analysis');
+        Route::get('/finance/export-pdf', [App\Http\Controllers\Admin\FinanceController::class, 'exportPdf'])->name('finance.export-pdf');
+    });
+
+    // Gallery Management
 
     // Gallery Management
     Route::resource('galleries', GalleryController::class);
@@ -72,10 +91,22 @@ Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
     Route::resource('service-addons', App\Http\Controllers\Admin\ServiceAddonController::class);
     Route::resource('promos', App\Http\Controllers\Admin\PromoController::class);
     Route::resource('settings', App\Http\Controllers\Admin\SettingController::class)->only(['index', 'store']);
+
+    // Finance Management
+    Route::get('/finance', [App\Http\Controllers\Admin\FinanceController::class, 'index'])->name('finance.index');
+    Route::post('/finance', [App\Http\Controllers\Admin\FinanceController::class, 'store'])->name('finance.store');
+    Route::put('/finance/{transaction}', [App\Http\Controllers\Admin\FinanceController::class, 'update'])->name('finance.update');
+    Route::delete('/finance/{transaction}', [App\Http\Controllers\Admin\FinanceController::class, 'destroy'])->name('finance.destroy');
+    Route::get('/finance/history', [App\Http\Controllers\Admin\FinanceController::class, 'history'])->name('finance.history');
+    Route::get('/finance/analysis', [App\Http\Controllers\Admin\FinanceController::class, 'analysis'])->name('finance.analysis');
+    Route::get('/finance/export-pdf', [App\Http\Controllers\Admin\FinanceController::class, 'exportPdf'])->name('finance.export-pdf');
+
+    // Account Management
+    Route::resource('accounts', App\Http\Controllers\Admin\AccountController::class)->except(['create', 'store', 'show']);
 });
 
 // User Dashboard & Profile
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware(['auth', 'verified', 'role:user'])->group(function () {
     Route::get('/dashboard', [App\Http\Controllers\User\DashboardController::class, 'index'])->name('dashboard');
     Route::get('/profile', [App\Http\Controllers\ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update');
@@ -83,7 +114,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
 });
 
 // Google Authentication Routes
-Route::get('auth/google', [App\Http\Controllers\Auth\GoogleController::class, 'redirectToGoogle'])->name('auth.google');
-Route::get('auth/google/callback', [App\Http\Controllers\Auth\GoogleController::class, 'handleGoogleCallback']);
+// Route::get('auth/google', [App\Http\Controllers\Auth\GoogleController::class, 'redirectToGoogle'])->name('auth.google');
+// Route::get('auth/google/callback', [App\Http\Controllers\Auth\GoogleController::class, 'handleGoogleCallback']);
 
 require __DIR__ . '/auth.php';
+
+
+

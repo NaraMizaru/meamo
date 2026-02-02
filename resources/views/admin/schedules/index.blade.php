@@ -107,4 +107,8 @@
     <div class="mt-6">
         {{ $schedules->links() }}
     </div>
+
+    <script>
+        console.log(Date.now());
+    </script>
 @endsection

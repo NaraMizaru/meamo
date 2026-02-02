@@ -17,6 +17,7 @@ class DashboardController extends Controller
             ->whereHas('schedule', function ($q) {
                 $q->where('event_date', '>=', now()->startOfDay());
             })
+
             ->join('schedules', 'bookings.schedule_id', '=', 'schedules.id')
             ->orderBy('schedules.event_date', 'asc')
             ->orderBy('bookings.sequence', 'asc')

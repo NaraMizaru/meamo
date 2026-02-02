@@ -15,8 +15,9 @@ class BookingController extends Controller
         $services = Service::with('addons')->get();
 
         $schedules = Schedule::whereIn('status', ['available', 'booked'])
-            ->where('event_date', '>=', today())
+            ->where('event_date', '>=', today()->subDay())
             ->orderBy('event_date')
+            ->orderBy('start_time')
             ->get();
 
         return view('user.booking', compact('services', 'schedules'));
@@ -186,9 +187,10 @@ class BookingController extends Controller
 
         $services = Service::with('addons')->get();
         $schedules = Schedule::whereIn('status', ['available', 'booked'])
-            ->where('event_date', '>=', today())
+            ->where('event_date', '>=', today()->subDay())
             ->orWhere('id', $booking->schedule_id)
             ->orderBy('event_date')
+            ->orderBy('start_time')
             ->distinct()
             ->get();
 

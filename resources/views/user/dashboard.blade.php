@@ -56,13 +56,17 @@
                         <h2 class="text-3xl md:text-4xl font-extrabold tracking-tight">{{ $next_booking->queue_number }}</h2>
                     </div>
                     <div class="sm:text-right">
-                        <p class="text-xl md:text-2xl font-bold">{{ $next_booking->schedule->event_date->format('d M Y') }}</p>
-                        <div class="flex items-center sm:justify-end text-blue-200 mt-1 gap-1">
+                        <div class="mb-1">
+                            <span class="text-blue-200 text-xs font-bold uppercase tracking-wider block sm:inline">Tanggal Jadwal</span>
+                            <p class="text-xl md:text-2xl font-bold inline sm:block">{{ $next_booking->schedule->event_date->format('d M Y') }}</p>
+                        </div>
+                        <div class="flex items-center sm:justify-end text-blue-100 gap-1">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
-                            <p class="font-medium">{{ $next_booking->time_slot }}</p>
+                            <span class="text-xs uppercase font-bold tracking-wider mr-1">Waktu:</span>
+                            <p class="font-medium text-white">{{ $next_booking->time_slot }}</p>
                         </div>
                     </div>
                 </div>

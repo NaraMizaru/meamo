@@ -95,8 +95,9 @@ class BookingController extends Controller
         $services = Service::with('addons')->get();
         // Admin sees all future schedules or all?
         $schedules = Schedule::whereIn('status', ['available', 'booked'])
-            ->where('event_date', '>=', today())
+            ->where('event_date', '>=', today()->subDay())
             ->orderBy('event_date')
+            ->orderBy('start_time')
             ->get();
 
         return view('admin.bookings.create', compact('services', 'schedules'));
@@ -229,7 +230,7 @@ class BookingController extends Controller
         $data = ['status' => $validated['status']];
 
         if ($validated['status'] === 'processing') {
-            Booking::where('status', 'processing', '!=', $booking->id)->update(['status' => 'booked']);
+            Booking::where('status', 'processing')->where('id', '!=', $booking->id)->update(['status' => 'booked']);
             $data['processing_started_at'] = now();
         }
 
@@ -248,8 +249,9 @@ class BookingController extends Controller
     {
         $services = Service::with('addons')->get();
         $schedules = Schedule::whereIn('status', ['available', 'booked'])
-            ->where('event_date', '>=', today())
+            ->where('event_date', '>=', today()->subDay())
             ->orderBy('event_date')
+            ->orderBy('start_time')
             ->get();
 
         return view('admin.bookings.edit', compact('booking', 'services', 'schedules'));

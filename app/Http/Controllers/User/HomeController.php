@@ -50,10 +50,19 @@ class HomeController extends Controller
 
     public function schedules()
     {
-        $schedules = Schedule::where('status', 'available')
+        $query = Schedule::where('status', 'available')
             ->where('event_date', '>=', now())
-            ->orderBy('event_date')
-            ->get();
+            ->orderBy('event_date');
+
+        // Apply date filters if provided
+        if (request('from')) {
+            $query->where('event_date', '>=', request('from'));
+        }
+        if (request('to')) {
+            $query->where('event_date', '<=', request('to'));
+        }
+
+        $schedules = $query->paginate(12);
 
         return view('user.schedules', compact('schedules'));
     }
