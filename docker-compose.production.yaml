@@ -5,6 +5,7 @@ services:
     build:
       context: .
       dockerfile: ops/production/Dockerfile
+    image: ${DOCKER_REGISTRY}/web:${IMAGE_VERSION}
     ports:
       - "${DOCKER_PORT:-127.0.0.1:8000}:80"
     environment:
