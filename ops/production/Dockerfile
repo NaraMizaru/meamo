@@ -44,6 +44,6 @@ COPY ops/production/nginx/nginx.conf /etc/nginx/nginx.conf
 
 RUN mkdir -p /run/nginx
 
-ENV PORT=8080
+ENV PORT=80
 
 CMD ["sh", "-c", "sh /opt/apps/meamo/ops/production/nginx/startup.sh"]
