@@ -40,19 +40,19 @@ class GuestController extends Controller
             $bookings = Booking::with(['user', 'service', 'schedule', 'items', 'addons', 'promo'])
                 ->whereHas('user', function ($q) use ($query) {
                     $q->where('phone_number', $query)
-                        ->orWhere('phone_number', 'like', "%{$query}") // relaxed check?
+                        ->orWhere('phone_number', 'like', "%{$query}%") // relaxed check?
                         ->orWhere('phone_number', '0' . ltrim($query, '+62'));
                 })
                 ->whereHas('schedule', function ($q) {
                     $q->where('event_date', '>=', now()->startOfDay());
                 })
-                ->whereIn('status', ['booked', 'processing']) // Active only? "data ... schedule paling mendekati" implied future/active
+                ->whereIn('bookings.status', ['booked', 'processing']) // Active only? "data ... schedule paling mendekati" implied future/active
                 ->join('schedules', 'bookings.schedule_id', '=', 'schedules.id')
                 ->orderBy('schedules.event_date', 'asc')
                 ->select('bookings.*')
                 ->get();
 
-            // Closest to now? 
+            // Closest to now?
             // The query sorts by date ASC. The first one is the "Next/Closest".
             $booking = $bookings->first();
         }
