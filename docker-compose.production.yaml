@@ -19,7 +19,7 @@ services:
       dockerfile: ops/production/web.Dockerfile
     image: ${DOCKER_REGISTRY}/web:${IMAGE_VERSION}
     ports:
-      - "${DOCKER_HOST:-127.0.0.1:8000}:80"
+      - "8082:80"
     environment:
       FPM_HOST: "fpm:9000"
     volumes:
