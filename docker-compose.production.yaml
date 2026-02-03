@@ -1,18 +1,31 @@
 services:
+  fpm:
+    restart: always
+    container_name: meamo.fpm.production
+    build:
+      context: .
+      dockerfile: ops/production/fpm.Dockerfile
+    image: ${DOCKER_REGISTRY}/fpm:${IMAGE_VERSION}
+    volumes:
+      - '.:/opt/apps/meamo'
+    networks:
+      - meamo
+
   web:
     restart: always
     container_name: meamo.web.production
     build:
       context: .
-      dockerfile: ops/production/Dockerfile
+      dockerfile: ops/production/web.Dockerfile
     image: ${DOCKER_REGISTRY}/web:${IMAGE_VERSION}
     ports:
-      - "${DOCKER_PORT:-127.0.0.1:8000}:80"
+      - "${DOCKER_HOST:-127.0.0.1:8000}:80"
     environment:
-      FPM_HOST: "9000:9000"
+      FPM_HOST: "fpm:9000"
     volumes:
       - '.:/opt/apps/meamo'
     depends_on:
+      - fpm
       - mysql
     networks:
       - meamo
