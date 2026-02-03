@@ -1,0 +1,61 @@
+services:
+  mysql:
+    restart: always
+    container_name: meamo.mysql.local
+    image: mysql:8.2
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: meamo
+    volumes:
+      - 'mysql:/var/lib/mysql'
+      - '.:/opt/apps/meamo'
+    networks:
+      - meamo
+    healthcheck:
+      test: [
+        "CMD",
+        "mysqladmin",
+        "ping",
+        "-p${DB_PASSWORD}"
+      ]
+      retries: 3
+      timeout: 5s
+
+  redis:
+    restart: always
+    container_name: meamo.redis.local
+    image: redis:6.0
+    networks:
+      - meamo
+    volumes:
+      - 'redis:/data'
+    healthcheck:
+      test: [ "CMD", "redis-cli", "--raw", "incr", "ping" ]
+
+  web:
+    restart: always
+    container_name: meamo.web.local
+    build:
+      context: .
+      dockerfile: ops/local/Dockerfile
+    image: ${DOCKER_REGISTRY}/web:${IMAGE_VERSION}
+    ports:
+      - "${DOCKER_HOST:-127.0.0.1:8000}:8000"
+    volumes:
+      - ".:/opt/apps/meamo"
+    env_file:
+      - .env
+    depends_on:
+      - mysql
+    networks:
+      - meamo
+networks:
+  meamo:
+    name: meamo.local
+    driver: bridge
+
+volumes:
+  mysql:
+    name: meamo.mysql.local
+  redis:
+    name: meamo.redis.local

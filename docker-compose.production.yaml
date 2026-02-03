@@ -1,0 +1,64 @@
+services:
+  web:
+    restart: always
+    container_name: meamo.web.production
+    build:
+      context: .
+      dockerfile: ops/production/Dockerfile
+    image: ${DOCKER_REGISTRY}/web:${IMAGE_VERSION}
+    ports:
+      - "8082:80"
+    environment:
+      FPM_HOST: "9000:9000"
+    volumes:
+      - '.:/opt/apps/meamo'
+    depends_on:
+      - fpm
+      - mysql
+    networks:
+      - meamo
+
+  mysql:
+    restart: always
+    container_name: meamo.mysql.production
+    image: mysql:8.2
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: meamo
+    volumes:
+      - 'mysql:/var/lib/mysql'
+      - '.:/opt/apps/meamo'
+    networks:
+      - meamo
+    command: --max_connections=500 --innodb_buffer_pool_size=8096M --innodb_log_file_size=256M
+    healthcheck:
+      test: [
+        "CMD",
+        "mysqladmin",
+        "ping",
+        "-p${DB_PASSWORD}"
+      ]
+      retries: 3
+      timeout: 5s
+
+  redis:
+    restart: always
+    container_name: meamo.redis.production
+    image: redis:6.0
+    networks:
+      - meamo
+    volumes:
+      - 'redis:/data'
+    healthcheck:
+      test: [ "CMD", "redis-cli", "--raw", "incr", "ping" ]
+
+networks:
+  meamo:
+    name: meamo
+    driver: bridge
+
+volumes:
+  mysql:
+    name: meamo.mysql.production
+  redis:
+    name: meamo.redis.production
